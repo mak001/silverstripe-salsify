@@ -83,6 +83,7 @@ class AssetHandler extends Extension
 
         $file = $class::create();
         $file->SalsifyID = $id;
+        $file->write();
         return $file;
     }
 
