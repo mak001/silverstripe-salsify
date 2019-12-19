@@ -1,5 +1,6 @@
 ---
 name: salsify-config
+After: framework/routes#coreroutes
 ---
 Dynamic\Salsify\Model\Fetcher:
   timeout: 2000
@@ -25,3 +26,11 @@ SilverStripe\AssetAdmin\Forms\FileFormFactory:
 SilverStripe\Admin\LeftAndMain:
   extensions:
     - Dyanmic\Salsify\ORM\SalsifyFetchExtension
+
+Dynamic\Salsify\Controller\WebhookReceiver:
+  certificateHost: 'webhooks-auth.salsify.com'
+  maxRequestAge: 5
+
+SilverStripe\Control\Director:
+  rules:
+    'salsify-webhook//$Action/$ID/$Name': Dynamic\Salsify\Controller\WebhookReceiver
