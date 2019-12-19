@@ -41,6 +41,13 @@ class WebhookReceiver extends Controller
     public function index()
     {
         $request = $this->getRequest();
+        if ($this->validateRequest($request)) {
+            $this->setResponse(new HTTPResponse());
+            $this->getResponse()->setStatusCode(400);
+            $this->getResponse()->setBody('invalid');
+
+            return $this->getResponse();
+        }
         echo $this->getWebhookURL($request);
     }
 
@@ -50,49 +57,23 @@ class WebhookReceiver extends Controller
      */
     public function validateRequest($request)
     {
-        /** @var X509 $x509 */
-        $x509 = new X509();
-
-        $client = new Client([
-            'timeout' => $this->config()->get('timeout'),
-            'http_errors' => false,
-            'verify' => true,
-        ]);
-
-        $client->request('GET', $request->getHeader('X-Salsify-Cert-Url'));
-
-        /** @var array $cert */
-        $cert = $x509->loadX509(file_get_contents($this->cert_url));
-
-        $response = openssl_verify(
-            $this->makeHeaderString(),
-            $cert['signature'], // should this be base64_decode($cert['signature'])?
-            $x509->getPublicKey(),
-            'sha512'
-        );
-        if ($response === 1) {
-        } elseif ($response === 0) {
-            $this->valid_request = false;
-        } else {
-            // @TODO
-            throw new \Exception(openssl_error_string());
+        if (!$request->getHeader('X-Salsify-Cert-Url')) {
+            return false;
         }
-        //$x509->_validateSignature('', $x509->getPublicKey(), '', $cert['signature'], $x509->signatureSubject);
-        return $this;
+        return true;
     }
 
     /**
      * @param HTTPRequest $request
      * @return string
      */
-    private function getWebhookURL($request) {
-        print_r($request);
+    private function getWebhookURL($request)
+    {
         $host = $request->getHost();
-        $path = $request->getURL();
         if ((substr($host, -strlen($host)) === '/')) {
             return $host . $path;
         }
-        return $host . '/' . $path;
+        return $host . '/' . $this->getURLSegment();
     }
 
     /**
@@ -130,6 +111,42 @@ class WebhookReceiver extends Controller
 
         // something went wrong, just return everything
         return $response;
+    }
+
+    /**
+     * @param HTTPRequest $request
+     * @return bool
+     */
+    public function isValidSignature($request)
+    {
+        /** @var X509 $x509 */
+        $x509 = new X509();
+
+        $client = new Client([
+            'timeout' => $this->config()->get('timeout'),
+            'http_errors' => false,
+            'verify' => true,
+        ]);
+
+        $cert = $this->getCertification($request);
+        if (is_array($cert)) {
+            return false;
+        }
+        /** @var array $cert */
+        $cert = $x509->loadX509($cert);
+
+        $response = openssl_verify(
+            $this->makeHeaderString(),
+            $cert['signature'], // should this be base64_decode($cert['signature'])?
+            $x509->getPublicKey(),
+            'sha512'
+        );
+
+        if ($response === 1) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
