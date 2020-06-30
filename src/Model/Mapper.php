@@ -255,8 +255,13 @@ class Mapper extends Service
             if (
                 $salsifyRelations == true &&
                 $object->hasField('SalsifyRelationsUpdatedAt') &&
-                isset($data['salsify:relations_updated_at']) &&
-                $data['salsify:relations_updated_at'] == $object->getField('SalsifyRelationsUpdatedAt')
+                (
+                    !isset($data['salsify:relations_updated_at']) ||
+                    (
+                        isset($data['salsify:relations_updated_at']) &&
+                        $data['salsify:relations_updated_at'] == $object->getField('SalsifyRelationsUpdatedAt')
+                    )
+                )
             ) {
                 return true;
             }

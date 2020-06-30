@@ -53,8 +53,6 @@ class ImportTask extends BuildTask
      */
     public function run($request)
     {
-        static::$lineEnding = Director::is_cli() ? PHP_EOL : '<br />';
-
         // gets all importers
         $injectorConfig = array_keys(Config::inst()->get(Injector::class));
         $importers = array_filter(
@@ -75,6 +73,10 @@ class ImportTask extends BuildTask
      */
     public static function output($string)
     {
+        if (!static::$lineEnding) {
+            static::$lineEnding = Director::is_cli() ? PHP_EOL : '<br />';
+        }
+
         if (static::config()->get('output')) {
             echo $string . static::$lineEnding;
         }
