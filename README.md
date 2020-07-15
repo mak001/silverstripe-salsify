@@ -37,6 +37,7 @@ See [License](license.md)
           - [ManyRelation Example](#manyrelation-example)
         - [Salsify Relations](#salsify-relations)
       - [Field Fallback](#field-fallback)
+      - [Field Type Fallback](#field-type-fallback)
       - [Keeping Field Values Without a Salsify Field](#keeping-field-values-without-a-salsify-field)
       - [Extending afterObjectWrite](#extending-afterobjectwrite)
       - [Advanced](#advanced)
@@ -449,6 +450,9 @@ The `salsifyField` is the name of the relation type.
 Dynamic\Salsify\Model\Mapper.example:
   mapping:
     \Page:
+      SalsifyRelationsUpdatedAt:
+        salsifyField: 'salsify:updated_at'
+        type: 'SalsifyRelationTimeStamp'
       RelatedProducts:
         salsifyField: 'You May Also Like'
         type: 'SalsifyRelation'
@@ -459,6 +463,9 @@ To map to a `has_one` relation a single object can be returned.
 Dynamic\Salsify\Model\Mapper.example:
   mapping:
     \Page:
+      SalsifyRelationsUpdatedAt:
+        salsifyField: 'salsify:updated_at'
+        type: 'SalsifyRelationTimeStamp'
       AlternateProduct:
         salsifyField: 'Alternate'
         type: 'SalsifyRelation'
@@ -487,6 +494,16 @@ Dynamic\Salsify\Model\Mapper.example:
         fallback:
           - 'Product Title'
           - 'SKU'
+```
+
+#### Field Type Fallback
+A fallback type can be specified for a mapped field type.
+This can allow certian types to be handled differenty.
+For example the type `SalsifyRelationTimeStamp` will allow mapping fields during the relations mapping.
+```yaml
+Dynamic\Salsify\Model\Mapper:
+  typeFallbacks:
+    SalsifyRelationTimeStamp: Raw
 ```
 
 #### Keeping Field Values Without a Salsify Field
